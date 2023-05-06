@@ -1,11 +1,3 @@
-//! Example chat application.
-//!
-//! Run with
-//!
-//! ```not_rust
-//! cargo run -p example-chat
-//! ```
-
 use axum::{
     extract::{
         ws::{Message, WebSocket, WebSocketUpgrade},
@@ -25,9 +17,9 @@ use tokio::sync::broadcast;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 // Our shared state
-struct AppState {
+struct OpenChatStore {
     // We require unique usernames. This tracks which usernames have been taken.
-    user_set: Mutex<HashSet<String>>,
+    usernames: Mutex<HashSet<String>>,
     // Channel used to send messages to all connected clients.
     tx: broadcast::Sender<String>,
 }
@@ -37,16 +29,16 @@ async fn main() {
     tracing_subscriber::registry()
         .with(
             tracing_subscriber::EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| "example_chat=trace".into()),
+                .unwrap_or_else(|_| "openchat=trace".into()),
         )
         .with(tracing_subscriber::fmt::layer())
         .init();
 
     // Set up application state for use with with_state().
-    let user_set = Mutex::new(HashSet::new());
+    let usernames = Mutex::new(HashSet::new());
     let (tx, _rx) = broadcast::channel(100);
 
-    let app_state = Arc::new(AppState { user_set, tx });
+    let app_state = Arc::new(OpenChatStore { usernames, tx });
 
     let app = Router::new()
         .route("/", get(index))
@@ -63,15 +55,12 @@ async fn main() {
 
 async fn websocket_handler(
     ws: WebSocketUpgrade,
-    State(state): State<Arc<AppState>>,
+    State(state): State<Arc<OpenChatStore>>,
 ) -> impl IntoResponse {
     ws.on_upgrade(|socket| websocket(socket, state))
 }
 
-// This function deals with a single websocket connection, i.e., a single
-// connected client / user, for which we will spawn two independent tasks (for
-// receiving / sending chat messages).
-async fn websocket(stream: WebSocket, state: Arc<AppState>) {
+async fn websocket(stream: WebSocket, state: Arc<OpenChatStore>) {
     // By splitting, we can send and receive at the same time.
     let (mut sender, mut receiver) = stream.split();
 
@@ -142,11 +131,11 @@ async fn websocket(stream: WebSocket, state: Arc<AppState>) {
     let _ = state.tx.send(msg);
 
     // Remove username from map so new clients can take it again.
-    state.user_set.lock().unwrap().remove(&username);
+    state.usernames.lock().unwrap().remove(&username);
 }
 
-fn check_username(state: &AppState, string: &mut String, name: &str) {
-    let mut user_set = state.user_set.lock().unwrap();
+fn check_username(state: &OpenChatStore, string: &mut String, name: &str) {
+    let mut user_set = state.usernames.lock().unwrap();
 
     if !user_set.contains(name) {
         user_set.insert(name.to_owned());
