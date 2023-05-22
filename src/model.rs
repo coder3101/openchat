@@ -16,7 +16,7 @@ pub struct ChatMessage {
 pub struct ChatEvent {
     pub name: ChatEventType,
     pub identifier: String,
-    pub timestamp: u128
+    pub timestamp: u128,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
