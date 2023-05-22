@@ -1,10 +1,10 @@
-# fly.toml app configuration file generated for openchat on 2023-05-07T00:53:47+05:30
+# fly.toml app configuration file generated for openchatbe on 2023-05-14T22:43:00+05:30
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-app = "openchat"
-primary_region = "sin"
+app = "openchatbe"
+primary_region = "ams"
 
 [http_service]
   internal_port = 3000

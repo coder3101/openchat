@@ -1,25 +1,32 @@
 use axum::{
     extract::{
         ws::{Message, WebSocket, WebSocketUpgrade},
-        State,
+        Path, State,
     },
-    response::{Html, IntoResponse},
-    routing::get,
+    http::StatusCode,
+    response::{IntoResponse, Json, Response},
+    routing::{get, post},
     Router,
 };
 use futures::{sink::SinkExt, stream::StreamExt};
+use model::{Handle, Joined};
 use std::{
-    collections::HashSet,
+    collections::HashMap,
     net::SocketAddr,
     sync::{Arc, Mutex},
+    time::SystemTime,
 };
 use tokio::sync::broadcast;
+use tower_http::cors::CorsLayer;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
+use crate::model::{ChatEvent, ChatEventType, ChatMessage};
+
+mod model;
 // Our shared state
 struct OpenChatStore {
     // We require unique usernames. This tracks which usernames have been taken.
-    usernames: Mutex<HashSet<String>>,
+    usernames: Mutex<HashMap<String, String>>,
     // Channel used to send messages to all connected clients.
     tx: broadcast::Sender<String>,
 }
@@ -35,14 +42,15 @@ async fn main() {
         .init();
 
     // Set up application state for use with with_state().
-    let usernames = Mutex::new(HashSet::new());
+    let usernames = Mutex::new(HashMap::new());
     let (tx, _rx) = broadcast::channel(100);
 
     let app_state = Arc::new(OpenChatStore { usernames, tx });
 
     let app = Router::new()
-        .route("/", get(index))
-        .route("/websocket", get(websocket_handler))
+        .route("/join", post(join))
+        .route("/websocket/:cid", get(websocket_handler))
+        .layer(CorsLayer::permissive())
         .with_state(app_state);
 
     let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
@@ -56,44 +64,39 @@ async fn main() {
 async fn websocket_handler(
     ws: WebSocketUpgrade,
     State(state): State<Arc<OpenChatStore>>,
-) -> impl IntoResponse {
-    ws.on_upgrade(|socket| websocket(socket, state))
+    Path(cid): Path<String>,
+) -> Response {
+    let username = state.usernames.lock().unwrap().get(&cid).cloned();
+    if let Some(username) = username {
+        ws.on_upgrade(|socket| websocket(socket, state, username, cid))
+            .into_response()
+    } else {
+        (
+            StatusCode::BAD_REQUEST,
+            "Not valid communicationId, did you joined?",
+        )
+            .into_response()
+    }
 }
 
-async fn websocket(stream: WebSocket, state: Arc<OpenChatStore>) {
+async fn websocket(stream: WebSocket, state: Arc<OpenChatStore>, username: String, cid: String) {
     // By splitting, we can send and receive at the same time.
     let (mut sender, mut receiver) = stream.split();
-
-    // Username gets set in the receive loop, if it's valid.
-    let mut username = String::new();
-    // Loop until a text message is found.
-    while let Some(Ok(message)) = receiver.next().await {
-        if let Message::Text(name) = message {
-            // If username that is sent by client is not taken, fill username string.
-            check_username(&state, &mut username, &name);
-
-            // If not empty we want to quit the loop else we want to quit function.
-            if !username.is_empty() {
-                break;
-            } else {
-                // Only send our client that username is taken.
-                let _ = sender
-                    .send(Message::Text(String::from("Username already taken.")))
-                    .await;
-
-                return;
-            }
-        }
-    }
 
     // We subscribe *before* sending the "joined" message, so that we will also
     // display it to our client.
     let mut rx = state.tx.subscribe();
 
     // Now send the "joined" message to all subscribers.
-    let msg = format!("{} joined.", username);
-    tracing::debug!("{}", msg);
-    let _ = state.tx.send(msg);
+    let event = ChatEvent {
+        name: ChatEventType::Joined,
+        identifier: username.clone(),
+        timestamp: SystemTime::now()
+            .duration_since(SystemTime::UNIX_EPOCH)
+            .unwrap()
+            .as_millis(),
+    };
+    let _ = state.tx.send(serde_json::to_string(&event).unwrap());
 
     // Spawn the first task that will receive broadcast messages and send text
     // messages over the websocket to our client.
@@ -115,7 +118,15 @@ async fn websocket(stream: WebSocket, state: Arc<OpenChatStore>) {
     let mut recv_task = tokio::spawn(async move {
         while let Some(Ok(Message::Text(text))) = receiver.next().await {
             // Add username before message.
-            let _ = tx.send(format!("{}: {}", name, text));
+            let msg = ChatMessage {
+                author: name.to_string(),
+                timestamp: SystemTime::now()
+                    .duration_since(SystemTime::UNIX_EPOCH)
+                    .unwrap()
+                    .as_millis(),
+                body: text.to_string(),
+            };
+            let _ = tx.send(serde_json::to_string(&msg).unwrap());
         }
     });
 
@@ -126,25 +137,35 @@ async fn websocket(stream: WebSocket, state: Arc<OpenChatStore>) {
     };
 
     // Send "user left" message (similar to "joined" above).
-    let msg = format!("{} left.", username);
-    tracing::debug!("{}", msg);
-    let _ = state.tx.send(msg);
+    let event = ChatEvent {
+        name: ChatEventType::Left,
+        identifier: username.clone(),
+        timestamp: SystemTime::now()
+            .duration_since(SystemTime::UNIX_EPOCH)
+            .unwrap()
+            .as_millis(),
+    };
+    let _ = state.tx.send(serde_json::to_string(&event).unwrap());
 
     // Remove username from map so new clients can take it again.
-    state.usernames.lock().unwrap().remove(&username);
+    state.usernames.lock().unwrap().remove(&cid);
 }
 
-fn check_username(state: &OpenChatStore, string: &mut String, name: &str) {
-    let mut user_set = state.usernames.lock().unwrap();
-
-    if !user_set.contains(name) {
-        user_set.insert(name.to_owned());
-
-        string.push_str(name);
+async fn join(State(state): State<Arc<OpenChatStore>>, Json(handle): Json<Handle>) -> Response {
+    let uuid = uuid::Uuid::new_v4().to_string();
+    let joined = Joined { cid: uuid.clone() };
+    if handle.handle == "admin" {
+        return (StatusCode::BAD_REQUEST, "Cannot use reserved username").into_response();
     }
-}
-
-// Include utf-8 file at **compile** time.
-async fn index() -> Html<&'static str> {
-    Html(std::include_str!("./chat.html"))
+    if state
+        .usernames
+        .lock()
+        .unwrap()
+        .values()
+        .any(|v| handle.handle == *v)
+    {
+        return (StatusCode::BAD_REQUEST, "Username is taken in this room").into_response();
+    }
+    state.usernames.lock().unwrap().insert(uuid, handle.handle);
+    (StatusCode::OK, Json(joined)).into_response()
 }
