@@ -49,6 +49,7 @@ async fn main() {
 
     let app = Router::new()
         .route("/join", post(join))
+        .route("/online", get(online))
         .route("/websocket/:cid", get(websocket_handler))
         .layer(CorsLayer::permissive())
         .with_state(app_state);
@@ -168,4 +169,8 @@ async fn join(State(state): State<Arc<OpenChatStore>>, Json(handle): Json<Handle
     }
     state.usernames.lock().unwrap().insert(uuid, handle.handle);
     (StatusCode::OK, Json(joined)).into_response()
+}
+
+async fn online(State(state): State<Arc<OpenChatStore>>) -> Json<serde_json::Value> {
+    Json(serde_json::json!({"General": state.usernames.lock().unwrap().len()}))
 }
