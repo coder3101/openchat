@@ -81,6 +81,9 @@ jobs:
   sveltekit:
     name: npm run build
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: openchat
     steps:
       - name: Checkout sources
         uses: actions/checkout@v2
@@ -89,5 +92,5 @@ jobs:
         with:
           node-version: 19
           cache: 'npm'
-      - run: cd openchat && npm ci
-      - run: cd openchat && npm run build
+      - run: npm ci
+      - run: npm run build
