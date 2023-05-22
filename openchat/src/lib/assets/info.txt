@@ -1,0 +1,14 @@
+
+Hope you enjoy your new logo, here are the people that
+made your beautiful logo happen :)
+font name: vremenagrotesk
+font link: https://www.fontspring.com/fonts/abstrkt/vremena?utm_source=fontsquirrel.com&utm_medium=download_link&utm_campaign=vremena-grotesk#firstfreeproduct
+font author: ABSTRKT
+font author site: 
+
+
+icon designer: Joe Mortell
+icon designer link: /JoeMortell
+        
+{"bg-gradient-0":"#E98E0D","bg-gradient-1":"#1536F1","icon":"#ffffff","font":"#ffffff","slogan":"#ffffff"}
+      
