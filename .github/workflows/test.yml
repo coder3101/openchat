@@ -92,5 +92,6 @@ jobs:
         with:
           node-version: 19
           cache: 'npm'
+          cache-dependency-path: '**/package-lock.json'
       - run: npm ci
       - run: npm run build
