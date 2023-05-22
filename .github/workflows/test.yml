@@ -6,7 +6,7 @@
 
 on: [push]
 
-name: Build Backend
+name: Build
 
 jobs:
   check:
