@@ -80,6 +80,7 @@
 			connected = true;
 		} catch (err) {
 			console.error(err);
+			toast(err as string, 5);
 		} finally {
 			connecting = false;
 		}
@@ -111,8 +112,10 @@
 	{#if !connected}
 		<div class="grid place-items-center my-auto">
 			<Card class="w-full">
-				<Img src={logo_black} alt="vector-logo-white" class="mb-10 block dark:hidden" />
-				<Img src={logo_white} alt="vector-logo-black" class="mb-10 hidden dark:block" />
+				<div class="px-16 mb-8">
+					<Img src={logo_black} alt="vector-logo-white" class="block dark:hidden" />
+					<Img src={logo_white} alt="vector-logo-black" class="hidden dark:block" />
+				</div>
 				<form on:submit|preventDefault={join}>
 					<div class="grid gap-6 mb-6">
 						<div>
@@ -120,7 +123,6 @@
 							<Input
 								type="text"
 								id="handle"
-								placeholder="skylark12"
 								required
 								bind:value={handle}
 								style="font-size: 16px;"

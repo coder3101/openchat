@@ -26,4 +26,3 @@
 		<FooterLink href="/privacy_policy">Privacy Policy</FooterLink>
 	</FooterLinkGroup>
 </Footer>
-

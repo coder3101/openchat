@@ -1,11 +1,10 @@
 <script lang="ts">
-	import { Avatar, Button, Card, Heading, Hr, Input } from 'flowbite-svelte';
+	import { Avatar, Button, Card, Hr, Input } from 'flowbite-svelte';
 	import { isChatMessage, isChatEvent } from '$lib/message';
 	import { createEventDispatcher } from 'svelte';
 
 	export let handle: any;
 	export let messages: any[];
-    export let online: number;
 
 	let msg: string = '';
 	let send_message = () => {
@@ -34,14 +33,14 @@
 									<div>
 										<span
 											class="px-4 py-2 rounded-lg inline-block rounded-bl-none bg-gray-300 text-gray-600"
-											><b><i>{message.author}</i></b><Hr />
+											><b><i>{message.author}</i></b><br />
 											{message.body}<br /><sub
 												>Sent at {new Date(message.timestamp).toLocaleTimeString()}</sub
 											></span
 										>
 									</div>
 								</div>
-								<Avatar border size="xs">{message.author[0]}</Avatar>
+								<Avatar border size="xs">{message.author[0].toUpperCase()}</Avatar>
 							</div>
 						</div>
 					{:else}
@@ -51,14 +50,14 @@
 									<div>
 										<span
 											class="px-4 py-2 rounded-lg inline-block rounded-br-none bg-blue-600 text-white"
-											><b><i>You</i></b><Hr />
+											><b><i>You</i></b><br />
 											{message.body}<br /><sub
 												>Sent at {new Date(message.timestamp).toLocaleTimeString()}</sub
 											></span
 										>
 									</div>
 								</div>
-								<Avatar border size="xs" class="order-2">{message.author[0]}</Avatar>
+								<Avatar border size="xs" class="order-2">{message.author[0].toUpperCase()}</Avatar>
 							</div>
 						</div>
 					{/if}
