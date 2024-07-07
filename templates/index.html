@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}Welcome to OpenChat{% endblock %}
+
+{%block head %}
+<style>
+.filter-brightness{
+    filter: brightness(70%);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="hero bg-base-200 min-h-screen">
+    <div class="card bg-base-100 w-full max-w-sm shrink-0 shadow-2xl">
+<img class="h-auto max-w-full mx-12 mt-6 filter-brightness" src="public/openchat.svg" alt="vector-logo-black">
+      <form class="card-body">
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">Handle</span>
+          </label>
+          <input type="text" placeholder="userhandle" class="input input-bordered" required />
+        </div>
+<label class="form-control w-full max-w-xs">
+  <div class="label">
+    <span class="label-text">Room</span>
+  </div>
+  <select class="select select-bordered required">
+    <option>General</option>
+  </select>
+</label>
+<div class="form-control">
+  <label class="label cursor-pointer">
+    <input type="checkbox" class="checkbox-xs" required />
+    <div class="text-sm ml-2 mr-auto">
+    I agree to <a class="link" href="/privacy">privacy policy</a>
+    </div>
+  </label>
+</div>
+        <div class="form-control mt-6">
+          <button class="btn btn-primary">Login</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<footer class="footer footer-center bg-base-300 text-base-content p-4">
+	<aside>
+		<p>Copyright © 2024 - All right reserved. <br> Built with ❤️ by <a
+				href="https://coder3101.com"><u>coder3101</u></a></p>
+	</aside>
+</footer>
+{% endblock %}
