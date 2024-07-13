@@ -14,31 +14,44 @@
 <div class="hero bg-base-200 min-h-screen">
     <div class="card bg-base-100 w-full max-w-sm shrink-0 shadow-2xl">
 <img class="h-auto max-w-full mx-12 mt-6 filter-brightness" src="public/openchat.svg" alt="vector-logo-black">
-      <form class="card-body">
+      <form class="card-body" action="/chat" method="POST">
         <div class="form-control">
           <label class="label">
             <span class="label-text">Handle</span>
           </label>
-          <input type="text" placeholder="userhandle" class="input input-bordered" required />
+        {% if handle_error.is_some() %}
+        <input type="text" placeholder="username" name="username" class="input input-bordered input-error" required value={{ username.as_ref().unwrap() }} />
+        {% else %}
+          <input type="text" placeholder="username" name="username" class="input input-bordered" required />
+        {% endif %}
+        {% if let Some(error) = handle_error %}
+          <div class="label">
+          <span class="label-text-alt">{{ error }}</span>
+            </div>
+        {% endif %}
         </div>
-<label class="form-control w-full max-w-xs">
-  <div class="label">
-    <span class="label-text">Room</span>
-  </div>
-  <select class="select select-bordered required">
-    <option>General</option>
-  </select>
-</label>
-<div class="form-control">
-  <label class="label cursor-pointer">
-    <input type="checkbox" class="checkbox-xs" required />
-    <div class="text-sm ml-2 mr-auto">
-    I agree to <a class="link" href="/privacy">privacy policy</a>
-    </div>
-  </label>
-</div>
+        <label class="form-control w-full max-w-xs">
+          <div class="label">
+            <span class="label-text">Room</span>
+          </div>
+          <select class="select select-bordered required" name="category">
+            <option>General</option>
+          </select>
+        </label>
+        <div class="form-control">
+          <label class="label cursor-pointer">
+          {% if handle_error.is_some() %}
+            <input type="checkbox" class="checkbox-xs" required checked/>
+          {% else %}
+            <input type="checkbox" class="checkbox-xs" required/>
+          {% endif %}
+            <div class="text-sm ml-2 mr-auto">
+            I agree to <a class="link" href="/privacy">privacy policy</a>
+            </div>
+          </label>
+        </div>
         <div class="form-control mt-6">
-          <button class="btn btn-primary">Login</button>
+          <button class="btn btn-primary">Proceed</button>
         </div>
       </form>
     </div>

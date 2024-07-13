@@ -1,0 +1,22 @@
+<div id="notifications" hx-swap-oob="beforeend">
+	{% if leftside %}
+	<div class="chat chat-start mt-5">
+		{% else %}
+		<div class="chat chat-end">
+			{% endif %}
+			<div class="chat-image avatar">
+				<div class="avatar online placeholder">
+					<div class="bg-neutral text-neutral-content w-10 rounded-full">
+						<span class="text-xs">{{ avatar }}</span>
+					</div>
+				</div>
+			</div>
+			<div class="chat-header">
+				{{ username }}
+			</div>
+			<div class="chat-bubble">{{ message }}</div>
+			<div class="chat-footer opacity-50">
+				<time class="text-xs opacity-50">{{ time }}</time>
+			</div>
+		</div>
+	</div>

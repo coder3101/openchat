@@ -3,206 +3,38 @@
 {% block title %}OpenChat - {{room}} {% endblock %}
 
 {% block content %}
-<div class="px-3 lg:px-64 xl:px-[420px] h-[calc(100vh-68px)]">
+<script>
+        function navigateHome() {
+		if (confirm("Are you sure you want to leave?")) {
+		    window.location.replace('/');
+		}
+        }
+	document.body.addEventListener('htmx:oobAfterSwap', function(event) {
+		const chatContainer = document.getElementById('notifications');
+		chatContainer.scrollTop = chatContainer.scrollHeight;
+	});
+</script>
+<div class="px-3 lg:px-64 xl:px-[420px] h-[calc(100vh-68px)]" hx-ext="ws" ws-connect="{{ wsurl }}">
 	<div class="flex flex-row">
 		<div class="stats flex-start">
 			<div class="stat">
 				<div class="stat-title">Online</div>
-				<div class="stat-value">216</div>
+				<div class="stat-value" hx-get="/online" hx-trigger="every 3s">{{online}}</div>
 			</div>
 		</div>
-		<button class="btn btn-error btn-sm flex-end my-auto ml-auto">Leave</button>
+		<button class="btn btn-error btn-sm flex-end my-auto ml-auto" onclick="navigateHome()">Leave</button>
 	</div>
-	<div class="overflow-auto h-[calc(100vh-216px)]">
-		<div class="chat chat-start mt-5">
-			<div class="chat-image avatar">
-				<div class="w-10 rounded-full">
-					<img alt="Tailwind CSS chat bubble component"
-						src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg" />
-				</div>
-			</div>
-			<div class="chat-header">
-				Obi-Wan Kenobi
-				<time class="text-xs opacity-50">12:45</time>
-			</div>
-			<div class="chat-bubble">You were the Chosen One!</div>
-			<div class="chat-footer opacity-50">Delivered</div>
-		</div>
-		<div class="chat chat-end">
-			<div class="chat-image avatar">
-				<div class="w-10 rounded-full">
-					<img alt="Tailwind CSS chat bubble component"
-						src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg" />
-				</div>
-			</div>
-			<div class="chat-header">
-				Anakin
-				<time class="text-xs opacity-50">12:46</time>
-			</div>
-			<div class="chat-bubble">I hate you!</div>
-			<div class="chat-footer opacity-50">Seen at 12:46</div>
-		</div>
-		<div class="chat chat-start mt-5">
-			<div class="chat-image avatar">
-				<div class="w-10 rounded-full">
-					<img alt="Tailwind CSS chat bubble component"
-						src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg" />
-				</div>
-			</div>
-			<div class="chat-header">
-				Obi-Wan Kenobi
-				<time class="text-xs opacity-50">12:45</time>
-			</div>
-			<div class="chat-bubble">You were the Chosen One!</div>
-			<div class="chat-footer opacity-50">Delivered</div>
-		</div>
-		<div class="chat chat-end">
-			<div class="chat-image avatar">
-				<div class="w-10 rounded-full">
-					<img alt="Tailwind CSS chat bubble component"
-						src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg" />
-				</div>
-			</div>
-			<div class="chat-header">
-				Anakin
-				<time class="text-xs opacity-50">12:46</time>
-			</div>
-			<div class="chat-bubble">I hate you!</div>
-			<div class="chat-footer opacity-50">Seen at 12:46</div>
-		</div>
-		<div class="chat chat-start mt-5">
-			<div class="chat-image avatar">
-				<div class="w-10 rounded-full">
-					<img alt="Tailwind CSS chat bubble component"
-						src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg" />
-				</div>
-			</div>
-			<div class="chat-header">
-				Obi-Wan Kenobi
-				<time class="text-xs opacity-50">12:45</time>
-			</div>
-			<div class="chat-bubble">You were the Chosen One!</div>
-			<div class="chat-footer opacity-50">Delivered</div>
-		</div>
-		<div class="chat chat-end">
-			<div class="chat-image avatar">
-				<div class="w-10 rounded-full">
-					<img alt="Tailwind CSS chat bubble component"
-						src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg" />
-				</div>
-			</div>
-			<div class="chat-header">
-				Anakin
-				<time class="text-xs opacity-50">12:46</time>
-			</div>
-			<div class="chat-bubble">I hate you!</div>
-			<div class="chat-footer opacity-50">Seen at 12:46</div>
-		</div>
-		<div class="chat chat-start mt-5">
-			<div class="chat-image avatar">
-				<div class="w-10 rounded-full">
-					<img alt="Tailwind CSS chat bubble component"
-						src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg" />
-				</div>
-			</div>
-			<div class="chat-header">
-				Obi-Wan Kenobi
-				<time class="text-xs opacity-50">12:45</time>
-			</div>
-			<div class="chat-bubble">You were the Chosen One!</div>
-			<div class="chat-footer opacity-50">Delivered</div>
-		</div>
-		<div class="chat chat-end">
-			<div class="chat-image avatar">
-				<div class="w-10 rounded-full">
-					<img alt="Tailwind CSS chat bubble component"
-						src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg" />
-				</div>
-			</div>
-			<div class="chat-header">
-				Anakin
-				<time class="text-xs opacity-50">12:46</time>
-			</div>
-			<div class="chat-bubble">I hate you!</div>
-			<div class="chat-footer opacity-50">Seen at 12:46</div>
-		</div>
-
-		<div class="chat chat-end">
-			<div class="chat-image avatar">
-				<div class="w-10 rounded-full">
-					<img alt="Tailwind CSS chat bubble component"
-						src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg" />
-				</div>
-			</div>
-			<div class="chat-header">
-				Anakin
-				<time class="text-xs opacity-50">12:46</time>
-			</div>
-			<div class="chat-bubble">I hate you!</div>
-			<div class="chat-footer opacity-50">Seen at 12:46</div>
-		</div>
-
-		<div class="chat chat-start mt-5">
-			<div class="chat-image avatar">
-				<div class="w-10 rounded-full">
-					<img alt="Tailwind CSS chat bubble component"
-						src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg" />
-				</div>
-			</div>
-			<div class="chat-header">
-				Obi-Wan Kenobi
-				<time class="text-xs opacity-50">12:45</time>
-			</div>
-			<div class="chat-bubble">You were the Chosen One!</div>
-			<div class="chat-footer opacity-50">Delivered</div>
-		</div>
-		<div class="chat chat-end">
-			<div class="chat-image avatar">
-				<div class="w-10 rounded-full">
-					<img alt="Tailwind CSS chat bubble component"
-						src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg" />
-				</div>
-			</div>
-			<div class="chat-header">
-				Anakin
-				<time class="text-xs opacity-50">12:46</time>
-			</div>
-			<div class="chat-bubble">I hate you!</div>
-			<div class="chat-footer opacity-50">Seen at 12:46</div>
-		</div>
-		<div class="chat chat-start mt-5">
-			<div class="chat-image avatar">
-				<div class="w-10 rounded-full">
-					<img alt="Tailwind CSS chat bubble component"
-						src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg" />
-				</div>
-			</div>
-			<div class="chat-header">
-				Obi-Wan Kenobi
-				<time class="text-xs opacity-50">12:45</time>
-			</div>
-			<div class="chat-bubble">You were the Chosen One!</div>
-			<div class="chat-footer opacity-50">Delivered</div>
-		</div>
-		<div class="chat chat-end">
-			<div class="chat-image avatar">
-				<div class="w-10 rounded-full">
-					<img alt="Tailwind CSS chat bubble component"
-						src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg" />
-				</div>
-			</div>
-			<div class="chat-header">
-				Anakin
-				<time class="text-xs opacity-50">12:46</time>
-			</div>
-			<div class="chat-bubble">I hate you!</div>
-			<div class="chat-footer opacity-50">Seen at 12:46</div>
-		</div>
+	<div class="overflow-scroll h-[calc(100vh-216px)]" id="notifications">
 	</div>
-	<div class="absolute inset-x-0 bottom-0 px-3 lg:px-64 xl:px-[420px] flex flex-row">
+
+	<form id="form" ws-send>
+	<div class="absolute inset-x-0 bottom-0 lg:px-64 xl:px-[420px] flex flex-row">
 		<input type="text" placeholder="Type your message here"
-			class="flex input input-bordered input-primary w-full max-w-5xl ml-3" />
-		<button class="mr-auto btn btn-primary">Send</button>
+			class="flex input input-bordered input-primary w-full max-w-5xl ml-3"
+			name="message"
+			autocomplete="off"/>
+		<button class="mr-auto btn btn-primary" type="submit">Send</button>
 	</div>
+	</form>
 </div>
 {% endblock %}
