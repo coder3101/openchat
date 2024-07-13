@@ -78,13 +78,14 @@ RUN adduser \
     --uid "${UID}" \
     appuser
 USER appuser
+WORKDIR /bin/
 
 # Copy the executable from the "build" stage.
-COPY --from=build /bin/server /bin/
-COPY --from=build /bin/public /bin/public
+COPY --from=build /bin/server .
+COPY --from=build /bin/public ./public
 
 # Expose the port that the application listens on.
 EXPOSE 3000
 
 # What the container should run when it is started.
-CMD ["/bin/server"]
+CMD ["./server"]
