@@ -1,17 +1,371 @@
 {% extends "base.html" %}
-
 {% block title %}OpenChat - {{room}} {% endblock %}
+{% block head %}
+<style>
+:root {
+  --chat-primary: #6366f1;
+  --chat-secondary: #8b5cf6;
+  --chat-sidebar-width: 260px;
+}
+
+/* Layout */
+.chat-container {
+  display: grid;
+  grid-template-columns: var(--chat-sidebar-width) 1fr;
+  grid-template-rows: 100%;
+  height: calc(100vh - 64px);
+  background-color: rgba(15, 15, 25, 0.8);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .chat-container {
+    grid-template-columns: 1fr;
+    /* Fix for mobile to prevent footer from overlapping the typing area */
+    height: calc(100vh - 64px - 56px);
+  }
+  .chat-sidebar {
+    position: fixed;
+    left: -100%;
+    top: 64px;
+    bottom: 0;
+    width: 85%;
+    max-width: 280px;
+    z-index: 50;
+    transition: left 0.3s ease;
+  }
+  .chat-sidebar.active {
+    left: 0;
+  }
+  .sidebar-backdrop {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 40;
+  }
+  .sidebar-backdrop.active {
+    display: block;
+  }
+}
+
+/* Sidebar */
+.chat-sidebar {
+  background: rgba(30, 30, 45, 0.6);
+  backdrop-filter: blur(12px);
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.room-badge {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(139, 92, 246, 0.2) 100%);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+}
+
+/* Messages area */
+.messages-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.messages-header {
+  backdrop-filter: blur(12px);
+  background-color: rgba(30, 30, 45, 0.4);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  z-index: 10;
+}
+
+.messages-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.5rem 1.5rem 0.5rem;
+  scroll-behavior: smooth;
+  background-image: 
+    radial-gradient(circle at 25% 25%, rgba(99, 102, 241, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 75% 75%, rgba(139, 92, 246, 0.05) 0%, transparent 50%);
+}
+
+/* Input area */
+.message-input-container {
+  background-color: rgba(30, 30, 45, 0.4);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.message-input {
+  background-color: rgba(20, 20, 35, 0.6);
+  transition: all 0.2s ease;
+}
+
+.message-input:focus {
+  background-color: rgba(25, 25, 40, 0.8);
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.3);
+}
+
+/* Messages */
+.message-row {
+  margin-bottom: 1.25rem;
+  animation: message-fade-in 0.3s ease;
+  max-width: 85%;
+}
+
+.message-row.self {
+  margin-left: auto;
+}
+
+.message-bubble {
+  border-radius: 1rem;
+  padding: 0.75rem 1rem;
+  position: relative;
+  overflow: hidden;
+  transition: box-shadow 0.2s ease;
+}
+
+.message-bubble.self {
+  background: linear-gradient(135deg, var(--chat-primary) 0%, var(--chat-secondary) 100%);
+  border-bottom-right-radius: 0.25rem;
+  color: white;
+  box-shadow: 0 4px 12px -2px rgba(99, 102, 241, 0.3);
+}
+
+.message-bubble.other {
+  background-color: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-bottom-left-radius: 0.25rem;
+  box-shadow: 0 4px 12px -4px rgba(0, 0, 0, 0.1);
+}
+
+.user-avatar {
+  background: rgba(99, 102, 241, 0.2);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+}
+
+.online-indicator {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  background-color: #10b981;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+}
+
+/* Animations */
+@keyframes message-fade-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Custom scrollbar */
+.messages-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.messages-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.messages-list::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+.messages-list::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Leave confirmation dialog */
+.leave-dialog-backdrop {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  z-index: 100;
+  backdrop-filter: blur(4px);
+  animation: fade-in 0.2s ease;
+}
+
+.leave-dialog {
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90%;
+  max-width: 400px;
+  background: rgba(30, 30, 45, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 1rem;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+  z-index: 101;
+  animation: scale-in 0.25s ease;
+  overflow: hidden;
+}
+
+/* Connection lost dialog - similar styling to leave dialog */
+.reconnect-dialog-backdrop {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  z-index: 100;
+  backdrop-filter: blur(4px);
+  animation: fade-in 0.2s ease;
+}
+
+.reconnect-dialog {
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90%;
+  max-width: 400px;
+  background: rgba(30, 30, 45, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 1rem;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+  z-index: 101;
+  animation: scale-in 0.25s ease;
+  overflow: hidden;
+}
+
+/* Loading spinner animation for reconnect button */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scale-in {
+  from { transform: translate(-50%, -50%) scale(0.9); opacity: 0; }
+  to { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+}
+</style>
+{% endblock %}
 
 {% block content %}
 <script>
 	var scrollToBottom = true;
-
-        function navigateHome() {
-		if (confirm("Are you sure you want to leave?")) {
-		    window.location.replace('/');
-		}
+    var isLeavingIntentionally = false;
+    var isReconnecting = false;
+    var wsUrl = "{{ wsurl }}";
+    
+    function showLeaveConfirmation() {
+        document.getElementById('leave-dialog-backdrop').style.display = 'block';
+        document.getElementById('leave-dialog').style.display = 'block';
+        document.activeElement.blur();
+    }
+    
+    function hideLeaveConfirmation() {
+        document.getElementById('leave-dialog-backdrop').style.display = 'none';
+        document.getElementById('leave-dialog').style.display = 'none';
+    }
+    
+    function navigateHome() {
+        isLeavingIntentionally = true;
+        window.location.replace('/');
+    }
+    
+    function toggleSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        const backdrop = document.getElementById('sidebar-backdrop');
+        sidebar.classList.toggle('active');
+        backdrop.classList.toggle('active');
+    }
+    
+    function closeSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        const backdrop = document.getElementById('sidebar-backdrop');
+        sidebar.classList.remove('active');
+        backdrop.classList.remove('active');
+    }
+    
+    // Connection lost dialog functions
+    function showReconnectDialog() {
+        document.getElementById('reconnect-dialog-backdrop').style.display = 'block';
+        document.getElementById('reconnect-dialog').style.display = 'block';
+        document.activeElement.blur();
+    }
+    
+    function hideReconnectDialog() {
+        document.getElementById('reconnect-dialog-backdrop').style.display = 'none';
+        document.getElementById('reconnect-dialog').style.display = 'none';
+    }
+    
+    function reconnectWebSocket() {
+        if (isReconnecting) return;
+        
+        isReconnecting = true;
+        const reconnectBtn = document.getElementById('reconnect-button');
+        const reconnectSpinner = document.getElementById('reconnect-spinner');
+        const reconnectText = document.getElementById('reconnect-text');
+        
+        reconnectBtn.disabled = true;
+        reconnectSpinner.classList.remove('hidden');
+        reconnectText.textContent = 'Reconnecting...';
+        
+        // Remove existing websocket connection
+        const chatContainer = document.getElementById('chat-container');
+        if (chatContainer) {
+            // Force HTMX to reconnect by temporarily removing and re-adding the ws-connect attribute
+            const oldWsConnect = chatContainer.getAttribute('ws-connect');
+            chatContainer.removeAttribute('ws-connect');
+            
+            setTimeout(() => {
+                chatContainer.setAttribute('ws-connect', wsUrl);
+                htmx.process(chatContainer);
+                
+                // Reset the reconnect button after a short delay to confirm connection
+                setTimeout(() => {
+                    reconnectBtn.disabled = false;
+                    reconnectSpinner.classList.add('hidden');
+                    reconnectText.textContent = 'Reconnect';
+                    isReconnecting = false;
+                    hideReconnectDialog();
+                }, 1000);
+            }, 500);
         }
-
+    }
+	
+    // Keep the beforeunload event to catch accidental navigation away,
+    // but prevent it from showing when user intentionally leaves
+    window.addEventListener('beforeunload', function(e) {
+        if (!isLeavingIntentionally) {
+            e.preventDefault();
+            e.returnValue = '';
+            return '';
+        }
+    });
+    
 	document.body.addEventListener('htmx:oobBeforeSwap', function(event) {
 		const chatContainer = document.getElementById('notifications');
 		if (chatContainer.scrollTop + chatContainer.clientHeight < chatContainer.scrollHeight) {
@@ -20,7 +374,6 @@
 			scrollToBottom = true;
 		}
 	});
-
 	document.body.addEventListener('htmx:oobAfterSwap', function(event) {
 		const chatContainer = document.getElementById('notifications');
 		if (scrollToBottom) {
@@ -28,37 +381,198 @@
 		}
 		const form = document.getElementById('form')
 		form.reset();
-
 		const timestamp = new Date().toLocaleString();
 		const times = document.getElementsByTagName('time')
 		if (times.length > 0){
 			target = times[times.length - 1].innerText
 			times[times.length - 1].innerText = new Date(parseInt(target)).toLocaleTimeString();
 		}
-	})
+        
+        // Add focus back to input after sending
+        document.getElementById('message-input').focus();
+	});
+    
+    // WebSocket connection events
+    document.body.addEventListener('htmx:wsOpen', function(event) {
+        // Connection established
+        hideReconnectDialog();
+        console.log('WebSocket connection established');
+    });
+    
+    document.body.addEventListener('htmx:wsClose', function(event) {
+        // Connection closed
+        if (!isLeavingIntentionally) {
+            console.log('WebSocket connection closed');
+            showReconnectDialog();
+        }
+    });
+    
+    document.body.addEventListener('htmx:wsError', function(event) {
+        // Connection error
+        if (!isLeavingIntentionally) {
+            console.log('WebSocket connection error');
+            showReconnectDialog();
+        }
+    });
+    
+    // Initialize tooltips on load
+    document.addEventListener('DOMContentLoaded', function() {
+        const messageInput = document.getElementById('message-input');
+        messageInput.focus();
+    });
 </script>
-<div class="px-3 lg:px-64 xl:px-[420px] h-[calc(100vh-68px)]" hx-ext="ws" ws-connect="{{ wsurl }}">
-	<div class="flex flex-row">
-		<div class="stats flex-start">
-			<div class="stat">
-				<div class="stat-title">Online</div>
-				<div class="stat-value" hx-get="/online" hx-trigger="every 3s">{{online}}</div>
-			</div>
-		</div>
-		<button class="btn btn-error btn-sm flex-end my-auto ml-auto" onclick="navigateHome()">Leave</button>
-	</div>
-	<div class="overflow-y-auto h-[calc(100vh-216px)]" id="notifications">
-	</div>
 
-	<form id="form" ws-send>
-	<div class="absolute inset-x-0 bottom-0 lg:px-64 xl:px-[420px] flex flex-row">
-		<input type="text" placeholder="Type your message here and Enter to send"
-			class="flex input input-bordered input-primary w-full max-w-5xl ml-3"
-			name="message"
-			required
-			autocomplete="off"/>
-		<button class="mr-auto btn btn-primary">Send</button>
-	</div>
-	</form>
+<!-- Leave Confirmation Dialog -->
+<div id="leave-dialog-backdrop" class="leave-dialog-backdrop"></div>
+<div id="leave-dialog" class="leave-dialog">
+    <div class="p-6">
+        <div class="flex items-center justify-center mb-4">
+            <div class="p-3 bg-error/20 rounded-full">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-error" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                </svg>
+            </div>
+        </div>
+        <h3 class="text-xl font-bold text-center mb-2">Leave Chat Room?</h3>
+        <p class="text-center text-base-content/70 mb-6">
+            You are about to leave the "{{ room }}" chat room. Your chat history will be lost.
+        </p>
+        <div class="flex gap-3 justify-center">
+            <button onclick="hideLeaveConfirmation()" class="btn btn-ghost flex-1">
+                Stay
+            </button>
+            <button onclick="navigateHome()" class="btn btn-error flex-1">
+                Leave Room
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Connection Lost Dialog -->
+<div id="reconnect-dialog-backdrop" class="reconnect-dialog-backdrop"></div>
+<div id="reconnect-dialog" class="reconnect-dialog">
+    <div class="p-6">
+        <div class="flex items-center justify-center mb-4">
+            <div class="p-3 bg-warning/20 rounded-full">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-warning" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                </svg>
+            </div>
+        </div>
+        <h3 class="text-xl font-bold text-center mb-2">Connection Lost</h3>
+        <p class="text-center text-base-content/70 mb-6">
+            The connection to the chat server has been lost. Would you like to reconnect or leave the room?
+        </p>
+        <div class="flex gap-3 justify-center">
+            <button id="reconnect-button" onclick="reconnectWebSocket()" class="btn btn-primary flex-1 flex items-center justify-center">
+                <svg id="reconnect-spinner" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 animate-spin hidden" viewBox="0 0 24 24" fill="none">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span id="reconnect-text">Reconnect</span>
+            </button>
+            <button onclick="navigateHome()" class="btn btn-error flex-1">
+                Leave Room
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="sidebar-backdrop" id="sidebar-backdrop" onclick="closeSidebar()"></div>
+
+<div class="chat-container" id="chat-container" hx-ext="ws" ws-connect="{{ wsurl }}">
+    <!-- Sidebar -->
+    <aside class="chat-sidebar p-4" id="sidebar">
+        <div class="space-y-4">
+            <div class="rounded-lg p-3 room-badge">
+                <h3 class="font-medium mb-1">Current Room</h3>
+                <div class="flex items-center">
+                    <span class="text-lg font-semibold">{{ room }}</span>
+                </div>
+            </div>
+            
+            <div class="rounded-lg p-3 bg-base-300/30">
+                <h3 class="font-medium mb-1">Online Users</h3>
+                <div class="flex items-center gap-2">
+                    <span class="font-semibold text-lg" hx-get="/online" hx-trigger="every 3s">{{ online }}</span>
+                    <div class="flex items-center gap-1 text-sm text-green-400">
+                        <span class="online-indicator"></span>
+                        <span>active now</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mt-auto pt-4">
+            <button onclick="showLeaveConfirmation()" class="btn btn-outline btn-error w-full gap-2 mt-4">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 002 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clip-rule="evenodd" />
+                </svg>
+                Leave Chat
+            </button>
+        </div>
+    </aside>
+    
+    <!-- Main chat area -->
+    <main class="messages-container">
+        <header class="messages-header px-6 py-4 flex items-center">
+            <div class="flex items-center mr-4 md:hidden">
+                <button class="btn btn-ghost btn-sm" onclick="toggleSidebar()">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="flex-1">
+                <h1 class="text-xl font-bold">{{ room }}</h1>
+                <div class="text-sm opacity-70">Chat freely and responsibly</div>
+            </div>
+            
+            <div class="flex items-center gap-3">
+                <div class="badge badge-primary gap-1 py-3">
+                    <span class="online-indicator"></span>
+                    <span hx-get="/online" hx-trigger="every 3s">{{ online }}</span> online
+                </div>
+                
+                <div class="dropdown dropdown-end">
+                    <label tabindex="0" class="btn btn-ghost btn-circle">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+                        </svg>
+                    </label>
+                    <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-200 rounded-box w-52">
+                        <li><a onclick="showLeaveConfirmation()">Leave Chat</a></li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+        
+        <div class="messages-list" id="notifications">
+            <!-- Messages will appear here -->
+        </div>
+        
+        <div class="message-input-container p-4">
+            <form id="form" ws-send class="flex items-end gap-2">
+                <div class="flex-1 relative">
+                    <input 
+                        id="message-input"
+                        type="text" 
+                        placeholder="Type your message here..." 
+                        class="input message-input w-full pl-4 pr-10 py-3 min-h-12" 
+                        name="message"
+                        required
+                        autocomplete="off"
+                    />
+                </div>
+                
+                <button type="submit" class="btn btn-primary h-12 px-6">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
+                    </svg>
+                </button>
+            </form>
+        </div>
+    </main>
 </div>
 {% endblock %}
