@@ -1,32 +1,40 @@
-{% extends "core.html" %}
-
+{% extends "base.html" %}
 {% block title %}OpenChat - About Us{% endblock %}
-
-{% block body %}
-
-<body>
-	<div class="px-12 lg:px-60 xl:px-96">
-		<div class="max-w-4xl mx-auto p-6">
-			<h1 class="text-5xl font-bold mb-8">About Us</h1>
-
-			<section class="mb-6">
-				<h2 class="text-xl font-semibold mb-4">No Sign-Up or Account Creation Required</h2>
-				<ul class="list-disc list-inside ml-6">
-					<li>Our platform allows you to chat without any sign-up or account creation.
-					</li>
-					<li>Simply join the chat room and start chatting instantly.</li>
-				</ul>
-			</section>
-
-			<section class="mb-6">
-				<h2 class="text-xl font-semibold mb-4">Simple, User-Friendly, and Privacy-Focused</h2>
-				<ul class="list-disc list-inside ml-6">
-					<li>OpenChat is designed to be simple and user-friendly.</li>
-					<li>Our focus is on privacy, ensuring that your conversations remain secure and
-						confidential. Heck we don't even have a database backing this application</li>
-				</ul>
-			</section>
-		</div>
-	</div>
-</body>
+{% block content %}
+<div class="container mx-auto px-4 py-12 animate-fade-in">
+    <div class="max-w-3xl mx-auto glass-card p-8 shadow-lg">
+        <h1 class="text-4xl font-bold mb-6 bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent inline-block">About OpenChat</h1>
+        
+        <section class="mb-8">
+            <h2 class="text-xl font-semibold mb-4">No Sign-Up Required</h2>
+            <ul class="list-disc list-inside ml-4 space-y-2 opacity-80">
+                <li>Chat without any sign-up or account creation</li>
+                <li>Simply join a room and start chatting instantly</li>
+                <li>No personal information collected</li>
+            </ul>
+        </section>
+        
+        <section class="mb-8">
+            <h2 class="text-xl font-semibold mb-4">Simple & Privacy-Focused</h2>
+            <ul class="list-disc list-inside ml-4 space-y-2 opacity-80">
+                <li>Designed to be simple and user-friendly</li>
+                <li>No database - conversations remain secure and confidential</li>
+                <li>Messages aren't stored after you leave</li>
+            </ul>
+        </section>
+        
+        <section class="mb-8">
+            <h2 class="text-xl font-semibold mb-4">Modern Technology</h2>
+            <ul class="list-disc list-inside ml-4 space-y-2 opacity-80">
+                <li>Built with Rust for performance and security</li>
+                <li>HTMX for seamless, interactive experiences</li>
+                <li>Responsive design for all devices</li>
+            </ul>
+        </section>
+        
+        <div class="mt-10 text-center">
+            <a href="/" class="btn btn-primary px-8">Start Chatting</a>
+        </div>
+    </div>
+</div>
 {% endblock %}

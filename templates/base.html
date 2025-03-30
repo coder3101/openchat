@@ -1,24 +1,41 @@
 {% extends "core.html" %}
-
 {% block body %}
-
 <body>
-<div class="navbar bg-base-100">
-  <div class="flex-1">
-    <a class="btn btn-ghost text-xl" href="/">OpenChat</a>
+<nav class="navbar backdrop-blur-lg bg-base-300/30 border-b border-base-200/10 shadow-sm sticky top-0 z-50">
+  <div class="container mx-auto px-4">
+    <div class="flex-1">
+      <a class="flex items-center gap-2" href="/">
+        <img src="/public/openchat.svg" alt="OpenChat Logo" class="h-8 w-8">
+        <span class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary hidden sm:inline">OpenChat</span>
+      </a>
+    </div>
+    <div class="flex-none">
+      <ul class="menu menu-horizontal px-1 gap-1">
+        <li><a href="/about" class="rounded-lg font-medium">About</a></li>
+        <li><a href="/privacy" class="rounded-lg font-medium">Privacy</a></li>
+        <li><a href="https://github.com/coder3101/openchat" target="_blank" class="rounded-lg font-medium">GitHub</a></li>
+      </ul>
+    </div>
   </div>
-  <div class="flex-none">
-    <ul class="menu menu-horizontal px-1">
-	<li><a href="/about" target="_blank">About</a></li>
-	<li><a href="/privacy" target="_blank">Privacy Policy</a></li>
-    </ul>
+</nav>
+
+{% block content %}{% endblock %}
+
+<footer class="footer p-6 bg-base-300/20 backdrop-blur-md mt-8 border-t border-base-200/10">
+  <div class="container mx-auto">
+    <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+      <div class="flex items-center gap-2">
+        <img src="/public/openchat.svg" alt="OpenChat Logo" class="h-6 w-6">
+        <span class="font-semibold">OpenChat</span>
+        <span class="text-sm opacity-70">© 2025</span>
+      </div>
+      <div class="flex gap-6">
+        <a href="/about" class="link link-hover text-sm">About</a>
+        <a href="/privacy" class="link link-hover text-sm">Privacy</a>
+        <a href="https://github.com/coder3101/openchat" target="_blank" class="link link-hover text-sm">GitHub</a>
+      </div>
+    </div>
   </div>
-</div>
-
-
-<div id="content">
-	{% block content %}{% endblock %}
-</div>
-
+</footer>
 </body>
 {% endblock %}

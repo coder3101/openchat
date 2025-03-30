@@ -1,5 +1,9 @@
 <div id="notifications" hx-swap-oob="beforeend">
-	<div class="flex w-full flex-col">
-		<div class="divider divider-neutral">{{ notification }}</div>
-	</div>
+  <div class="flex w-full justify-center my-4 animate-fade-in">
+    <div class="px-5 py-2 rounded-full bg-base-300/40 backdrop-blur-sm border border-base-200/20 shadow-sm">
+      <div class="text-sm font-medium opacity-70">
+        {{ notification }}
+      </div>
+    </div>
+  </div>
 </div>

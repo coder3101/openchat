@@ -1,67 +1,46 @@
 {% extends "base.html" %}
-
 {% block title %}Welcome to OpenChat{% endblock %}
-
-{%block head %}
-<style>
-.filter-brightness{
-    filter: brightness(70%);
-}
-</style>
+{% block head %}
 {% endblock %}
-
 {% block content %}
-<div class="hero bg-base-200 min-h-screen">
-    <div class="card bg-base-100 w-full max-w-sm shrink-0 shadow-2xl">
-<img class="h-auto max-w-full mx-12 mt-6 filter-brightness" src="public/openchat.svg" alt="vector-logo-black">
-      <form class="card-body" action="/chat" method="POST">
-        <div class="form-control">
-          <label class="label">
-            <span class="label-text">Handle</span>
-          </label>
-        {% if handle_error.is_some() %}
-        <input type="text" placeholder="username" name="username" class="input input-bordered input-error" required value={{ username.as_ref().unwrap() }} />
-        {% else %}
-          <input type="text" placeholder="username" name="username" class="input input-bordered" required />
-        {% endif %}
-        {% if let Some(error) = handle_error %}
-          <div class="label">
-          <span class="label-text-alt">{{ error }}</span>
-            </div>
-        {% endif %}
-        </div>
-        <label class="form-control w-full max-w-xs">
-          <div class="label">
-            <span class="label-text">Room</span>
-          </div>
-          <select class="select select-bordered required" name="category">
-            <option>General</option>
-          </select>
-        </label>
-        <div class="form-control">
-          <label class="label cursor-pointer">
-          {% if handle_error.is_some() %}
-            <input type="checkbox" class="checkbox-xs" required checked/>
-          {% else %}
-            <input type="checkbox" class="checkbox-xs" required/>
-          {% endif %}
-            <div class="text-sm ml-2 mr-auto">
-            I agree to <a class="link" href="/privacy">privacy policy</a>
-            </div>
-          </label>
-        </div>
-        <div class="form-control mt-6">
-          <button class="btn btn-primary">Proceed</button>
-        </div>
-      </form>
+<div class="hero min-h-[calc(100vh-136px)] relative">
+    <div class="absolute inset-0 overflow-hidden pointer-events-none">
+        <div class="absolute -top-40 -right-40 w-96 h-96 rounded-full bg-purple-700/20 blur-3xl"></div>
+        <div class="absolute -bottom-40 -left-40 w-96 h-96 rounded-full bg-indigo-700/20 blur-3xl"></div>
     </div>
-  </div>
+    <div class="flex flex-col items-center animate-slide-up">
+        <div class="glass-card w-full max-w-xl shadow-xl">
+            <div class="p-6 pb-2">
+                <h1 class="text-2xl font-bold text-center mb-1">Welcome to OpenChat</h1>
+                <p class="text-center text-sm opacity-70 mb-4">Join a room and start chatting</p>
+            </div>
+            
+            <form class="p-6 pt-2" action="/chat" method="POST">
+                <div class="form-control mb-4">
+                    <label class="label">
+                        <span class="label-text">Username</span>
+                    </label>
+                    <input type="text" name="username" placeholder="Enter your username" class="input input-bordered w-full" required>
+                </div>
+                
+                <div class="form-control mb-6">
+                    <label class="label">
+                        <span class="label-text">Choose a room</span>
+                    </label>
+                    <select name="room" class="select select-bordered w-full" required>
+                        <option value="General">General</option>
+                    </select>
+                </div>
+                
+                <div class="form-control">
+                    <button type="submit" class="btn btn-primary w-full">Join Chat</button>
+                </div>
+            </form>
+            
+            <div class="p-6 pt-0 text-center">
+                <p class="text-sm opacity-70">By joining, you agree to our <a href="/privacy" class="link link-hover">Privacy Policy</a></p>
+            </div>
+        </div>
+    </div>
 </div>
-
-<footer class="footer footer-center bg-base-300 text-base-content p-4">
-	<aside>
-		<p>Copyright © 2024 - All right reserved. <br> Built with ❤️ by <a
-				href="https://coder3101.com"><u>coder3101</u></a></p>
-	</aside>
-</footer>
 {% endblock %}

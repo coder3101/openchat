@@ -25,10 +25,7 @@ use uuid::Uuid;
 
 #[derive(Default, Template)]
 #[template(path = "index.html")]
-struct IndexTemplate {
-    handle_error: Option<String>,
-    username: Option<String>,
-}
+struct IndexTemplate {}
 
 #[derive(Template)]
 #[template(path = "about.html")]
@@ -49,7 +46,6 @@ struct ChatTemplate {
 #[derive(Template)]
 #[template(path = "msg.html")]
 struct MessageTemplate {
-    avatar: String,
     leftside: bool,
     username: String,
     time: String,
@@ -84,7 +80,7 @@ enum ChatEvents {
 #[derive(Deserialize)]
 struct JoinForm {
     username: String,
-    category: String,
+    room: String,
 }
 
 #[tokio::main]
@@ -135,14 +131,10 @@ async fn join(
     State(state): State<Arc<OpenChatState>>,
     Form(input): Form<JoinForm>,
 ) -> Response<Body> {
-    let category = input.category.clone();
+    let room = input.room.clone();
     let uuid = Uuid::new_v4();
     if input.username.len() < 4 {
-        return IndexTemplate {
-            username: Some(input.username),
-            handle_error: Some("Handle must be more than 4 characters long".to_string()),
-        }
-        .into_response();
+        return IndexTemplate {}.into_response();
     }
     if state
         .usernames
@@ -152,11 +144,7 @@ async fn join(
         .any(|x| input.username == *x)
     {
         info!(username = input.username, "duplicate username");
-        return IndexTemplate {
-            username: Some(input.username),
-            handle_error: Some("A user with this handle is already in the room".to_owned()),
-        }
-        .into_response();
+        return IndexTemplate {}.into_response();
     }
 
     state
@@ -167,8 +155,8 @@ async fn join(
 
     ChatTemplate {
         online: state.usernames.lock().unwrap().len(),
-        room: category,
-        wsurl: format!("/messages/{}", uuid.to_string()),
+        room,
+        wsurl: format!("/messages/{uuid}"),
     }
     .into_response()
 }
@@ -206,7 +194,6 @@ async fn handle_msg(stream: WebSocket, state: Arc<OpenChatState>, username: Stri
                 }
                 .to_string(),
                 ChatEvents::Message(m) => MessageTemplate {
-                    avatar: m.sender.to_uppercase().split_at(2).0.to_string(),
                     leftside: m.sender != user,
                     username: m.sender,
                     time: m.time.to_string(),

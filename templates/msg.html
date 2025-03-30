@@ -1,22 +1,27 @@
 <div id="notifications" hx-swap-oob="beforeend">
-	{% if leftside %}
-	<div class="chat chat-start mt-5">
-		{% else %}
-		<div class="chat chat-end">
-			{% endif %}
-			<div class="chat-image avatar">
-				<div class="avatar online placeholder">
-					<div class="bg-neutral text-neutral-content w-10 rounded-full">
-						<span class="text-xs">{{ avatar }}</span>
-					</div>
-				</div>
-			</div>
-			<div class="chat-header">
-				{{ username }}
-			</div>
-			<div class="chat-bubble">{{ message }}</div>
-			<div class="chat-footer opacity-50">
-				<time class="text-xs opacity-50" id="msgtime">{{ time }}</time>
-			</div>
-		</div>
-	</div>
+  {% if leftside %}
+  <div class="chat chat-start mt-1.5 animate-fade-in">
+    <div class="chat-header flex items-center gap-2">
+      <span class="font-medium text-xs">{{ username }}</span>
+    </div>
+    <div class="chat-bubble chat-bubble-seconday message-bubble other shadow-md text-xs py-1 px-2 min-h-0 max-w-[16rem]">
+      {{ message }}
+    </div>
+    <div class="chat-footer opacity-70">
+      <time class="text-[10px]" id="msgtime">{{ time }}</time>
+    </div>
+  </div>
+  {% else %}
+  <div class="chat chat-end mt-1.5 animate-fade-in">
+    <div class="chat-header flex items-center gap-2">
+      <span class="font-medium text-xs">{{ username }}</span>
+    </div>
+    <div class="chat-bubble chat-bubble-primary message-bubble self shadow-md text-xs py-1 px-2 min-h-0 max-w-[16rem]">
+      {{ message }}
+    </div>
+    <div class="chat-footer opacity-70">
+      <time class="text-[10px]" id="msgtime">{{ time }}</time>
+    </div>
+  </div>
+  {% endif %}
+</div>
